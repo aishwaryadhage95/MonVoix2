@@ -11,6 +11,7 @@ import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -34,6 +35,7 @@ import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
 /**
  * Created by aishwarya on 19/02/17.
  */
+import org.opencv.android.JavaCameraView;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
@@ -50,28 +52,27 @@ public class tab2gtt extends Fragment {
     Button btn;
     ImageView mimageView;
     static final int CAM_REQUEST=1;
+    JavaCameraView javaCameraView;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.tab2gtt, container, false);
-btn=(Button)rootView.findViewById(R.id.button3);
-        mimageView=(ImageView)rootView.findViewById(R.id.image_view);
+        btn = (Button) rootView.findViewById(R.id.button3);
+        mimageView = (ImageView) rootView.findViewById(R.id.image_view);
         btn.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
-                Intent camera_intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-                File file = getFile();
-                camera_intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(file));
-File thresh=thresh();
-                camera_intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(thresh));
+                Intent intent = new Intent(getActivity(), cameraview.class);
+                startActivity(intent);
 
-                startActivityForResult(camera_intent, CAM_REQUEST);
             }
 
+                               });
 
-        });
+
         return rootView;
     }
 

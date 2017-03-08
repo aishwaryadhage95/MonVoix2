@@ -20,7 +20,7 @@ import android.widget.ImageView;
 import static com.example.aishwarya.monvoix.R.id.imageView;
 
 
-public class tab1ttg extends Fragment {
+public class tab1ttg extends Fragment{
     ImageButton imageButton;
     EditText edittext;
     ImageView iv;

@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-
     package="com.example.aishwarya.monvoix">
+
     <uses-permission android:name="android.permission.CAMERA" />
+
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
+
     <uses-permission android:name="android.permission.CAMERA" />
+
     <uses-feature android:name="android.hardware.camera" />
-    <user-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
+    <user-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
     <uses-feature android:name="android.hardware.camera.autofocus" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/icon"
@@ -26,7 +32,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".tab3dir" />
-
+        <activity android:name=".cameraview"></activity>
     </application>
 
 </manifest>
