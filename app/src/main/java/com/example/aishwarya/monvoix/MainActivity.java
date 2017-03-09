@@ -1,5 +1,6 @@
 package com.example.aishwarya.monvoix;
 
+import android.content.Intent;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -18,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -71,14 +73,29 @@ public class MainActivity extends AppCompatActivity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (item.getItemId()) {
+            case R.id.action_directory:
+                Toast.makeText(getApplicationContext(),"Directory Selected",Toast.LENGTH_LONG).show();
+                Intent directory = new Intent(getApplicationContext(), directory.class);
+                startActivity(directory);
+
+                return true;
+            case R.id.action_aboutus:
+                Toast.makeText(getApplicationContext(),"About Us Selected",Toast.LENGTH_LONG).show();
+                Intent aboutus = new Intent(getApplicationContext(), aboutus.class);
+                startActivity(aboutus);
+                return true;
+            case R.id.action_faq:
+                Toast.makeText(getApplicationContext(),"Directory Selected",Toast.LENGTH_LONG).show();
+                Intent faq = new Intent(getApplicationContext(), faq.class);
+                startActivity(faq);
+
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
 
-        return super.onOptionsItemSelected(item);
     }
 
     /**
@@ -100,9 +117,7 @@ public class MainActivity extends AppCompatActivity {
               case 1:
                   tab2gtt tab2=new tab2gtt();
                   return tab2;
-              case 2:
-                  tab3dir tab3=new tab3dir();
-                  return tab3;
+
               default:
                   return null;
 
@@ -112,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public int getCount() {
             // Show 3 total pages.
-            return 3;
+            return 2;
         }
 
         @Override
@@ -122,8 +137,7 @@ public class MainActivity extends AppCompatActivity {
                     return "Text To Gesture";
                 case 1:
                     return "Gesture To Text";
-                case 2:
-                    return "Signs Directory";
+
             }
             return null;
         }

@@ -32,7 +32,10 @@
             </intent-filter>
         </activity>
         <activity android:name=".tab3dir" />
-        <activity android:name=".cameraview"></activity>
+        <activity android:name=".cameraview" />
+        <activity android:name=".directory" />
+        <activity android:name=".aboutus" />
+        <activity android:name=".faq"></activity>
     </application>
 
 </manifest>
