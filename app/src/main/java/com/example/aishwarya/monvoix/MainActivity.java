@@ -88,9 +88,8 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.action_faq:
                 Toast.makeText(getApplicationContext(),"Directory Selected",Toast.LENGTH_LONG).show();
-                Intent faq = new Intent(getApplicationContext(), faq.class);
-                startActivity(faq);
-
+                Intent faq1 = new Intent(getApplicationContext(), faq1.class);
+                startActivity(faq1);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

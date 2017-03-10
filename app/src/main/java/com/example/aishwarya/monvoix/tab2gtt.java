@@ -1,6 +1,7 @@
 package com.example.aishwarya.monvoix;
 
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.graphics.Bitmap;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -13,6 +14,7 @@ import android.provider.MediaStore;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NotificationCompat;
+import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.SurfaceView;
@@ -37,10 +39,11 @@ import static android.R.attr.value;
 import static android.R.attr.width;
 import static android.app.Activity.RESULT_OK;
 import static android.content.ContentValues.TAG;
+import static android.content.Context.BIND_ABOVE_CLIENT;
 import static com.example.aishwarya.monvoix.R.id.button;
 import static com.example.aishwarya.monvoix.R.id.image;
 import static com.example.aishwarya.monvoix.R.id.imageView;
-import static com.example.aishwarya.monvoix.R.id.image_view;
+//import static com.example.aishwarya.monvoix.R.id.image_view;
 import static com.example.aishwarya.monvoix.R.id.toolbar;
 import static org.opencv.imgcodecs.Imgcodecs.IMREAD_GRAYSCALE;
 import static org.opencv.imgcodecs.Imgcodecs.imread;
@@ -61,13 +64,18 @@ import org.opencv.core.Mat;
 import org.opencv.core.Mat;
 
 //import org.opencv.imgcodecs.Imgcodecs;
+
+import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
-
+import org.opencv.core.*;
+import org.opencv.imgcodecs.Imgcodecs; // imread, imwrite, etc
 
 public class tab2gtt extends Fragment implements TextToSpeech.OnInitListener {
    // private File imageFile;
     Button btn;
+    EditText txtMessage;
+    EditText txtphoneNo;
     ImageView mimageView;
     static final int CAM_REQUEST = 1;
     JavaCameraView javaCameraView;
@@ -77,7 +85,7 @@ public class tab2gtt extends Fragment implements TextToSpeech.OnInitListener {
     private int MY_DATA_CHECK_CODE = 0;
     Mat gray;
     Mat result;
-
+    Button sendBtn;
 
 private static String TAG="MainActivity";
 
@@ -86,24 +94,72 @@ private static String TAG="MainActivity";
                              Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.tab2gtt, container, false);
         btn = (Button) rootView.findViewById(R.id.button3);
-        mimageView = (ImageView) rootView.findViewById(R.id.image_view);
+   //     mimageView = (ImageView) rootView.findViewById(R.id.image_view);
+        txtMessage=(EditText) rootView.findViewById(R.id.editText4);
+        txtphoneNo=(EditText) rootView.findViewById(R.id.editText5);
+
         Button speakButton = (Button) rootView.findViewById(R.id.button2);
         final EditText enteredText = (EditText) rootView.findViewById(R.id.editText4);
+        sendBtn=(Button) rootView.findViewById(R.id.button);
+        //listen for clicks
+        sendBtn.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                String no=txtphoneNo.getText().toString();
+                String msg=txtMessage.getText().toString();
+
+                //Getting intent and PendingIntent instance
+                Intent intent=new Intent(getActivity(),MainActivity.class);
+                PendingIntent pi= PendingIntent.getActivity(getActivity(), 0, intent,0);
+
+                //Get the SmsManager instance and call the sendTextMessage method to send message
+                SmsManager sms= SmsManager.getDefault();
+                sms.sendTextMessage(no, null, msg, pi,null);
+                Log.i(TAG,no);
+                Log.i(TAG,msg);
+                Toast.makeText(getActivity(), "Message Sent successfully!",
+                        Toast.LENGTH_LONG).show();
+
+                //  Intent intent = new Intent(getActivity(), cameraview.class);
+                //    startActivity(intent);
+
+            }
+
+
+        });
 
         //listen for clicks
+  /*      speakButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                String words = enteredText.getText().toString();
+                speakWords(words);
+            }});
+*/
+        //check for TTS data
+        Intent checkTTSIntent = new Intent();
+        checkTTSIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
+        startActivityForResult(checkTTSIntent, MY_DATA_CHECK_CODE);
         speakButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
                 String words = enteredText.getText().toString();
                 speakWords(words);
+                Intent checkTTSIntent = new Intent();
+                checkTTSIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
+                startActivityForResult(checkTTSIntent, MY_DATA_CHECK_CODE);
+                //  Intent intent = new Intent(getActivity(), cameraview.class);
+                //    startActivity(intent);
+
             }
+
+
         });
 
-        //check for TTS data
-        Intent checkTTSIntent = new Intent();
-        checkTTSIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
-        startActivityForResult(checkTTSIntent, MY_DATA_CHECK_CODE);
+
         btn.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -117,6 +173,15 @@ private static String TAG="MainActivity";
                 File file = getFile();
                 camera_intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(file));
                 startActivityForResult(camera_intent, CAM_REQUEST);
+                Mat image=new Mat(new Size(500,500),CvType.CV_8U);
+                image=Imgcodecs.imread("/storage/emulated/0/Download/Camera_app/cam_image.jpg");
+               // gray= imread(image, IMREAD_GRAYSCALE);
+                adaptiveThreshold(image, result, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 15, 40);
+                Bitmap bm=Bitmap.createBitmap(image.cols(),image.rows(),Bitmap.Config.ARGB_8888);
+                Utils.matToBitmap(result,bm);
+                File file1 = getFile1();
+                camera_intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(file1));
+                startActivityForResult(camera_intent, 0);
 
             }
 
@@ -140,6 +205,19 @@ private static String TAG="MainActivity";
         return image_file;
     }
 
+    private File getFile1() {
+        File folder = new File("/storage/emulated/0/Download/Camera_app");
+        if (!folder.exists()) {
+            folder.mkdir();
+        }
+        File image_file = new File(folder, "cam_image1.jpg");
+
+        //     Mat imgGray=new Mat(height,width,CvType.CV_8UC1);
+
+
+
+        return image_file;
+    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -169,7 +247,9 @@ mRgba=new Mat(height,width,CvType.CV_8UC4);
            if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
                //the user has the necessary data - create the TTS
                { myTTS = new TextToSpeech(getActivity(),this);}
-           } else {
+           }
+           else
+           {
                //no data - install it now
                Intent installTTSIntent = new Intent();
                installTTSIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);

@@ -21,7 +21,7 @@
             android:textSize="@dimen/slide_title"
             android:textStyle="bold" />
         <ImageView
-            android:layout_width="@dimen/img_width_height"
+            android:layout_width="match_parent"
             android:layout_height="@dimen/img_width_height"
             android:src="@drawable/img3" />
 
