@@ -21,6 +21,13 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name="com.example.aishwarya.monvoix.WelcomeActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
@@ -28,14 +35,12 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity android:name=".tab3dir" />
         <activity android:name=".cameraview" />
         <activity android:name=".directory" />
         <activity android:name=".aboutus" />
-        <activity android:name=".faq"></activity>
     </application>
 
 </manifest>
