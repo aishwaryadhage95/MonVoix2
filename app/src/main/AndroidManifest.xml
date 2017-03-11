@@ -42,7 +42,8 @@
         <activity android:name=".directory" />
         <activity android:name=".aboutus" />
         <activity android:name=".faq1" />
-        <activity android:name=".SingleListItem"></activity>
+        <activity android:name=".SingleListItem" />
+        <activity android:name=".processing"></activity>
     </application>
 
 </manifest>
