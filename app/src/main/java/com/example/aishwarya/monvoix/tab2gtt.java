@@ -79,7 +79,9 @@ public class tab2gtt extends Fragment implements TextToSpeech.OnInitListener {
     Mat gray;
     Mat result;
     Mat skindetected;
-
+    Mat imageMat;
+    Bitmap bamp;
+Bitmap bmp;
     Button sendBtn;
     static int flag=0;
 
@@ -91,8 +93,10 @@ private static String TAG="MainActivity";
                 case LoaderCallbackInterface.SUCCESS:
                 {
                     Log.i(TAG, "OpenCV loaded successfully");
-                   // Mat img1 = new Mat();
-                    Mat img1 = Imgcodecs.imread(getResources().getDrawable(R.drawable.hello).toString());
+                    imageMat=new Mat();
+
+
+                    /* Mat img1 = Imgcodecs.imread(getResources().getDrawable(R.drawable.hello).toString());
 
                     //Bitmap bmp32 = bmpGallery.copy(Bitmap.Config.ARGB_8888, true);
                     //Utils.bitmapToMat(bmp32, );
@@ -109,6 +113,8 @@ private static String TAG="MainActivity";
                     //System.out.println(b+" "+b1);
                     double comp=b.compareTo(b1);
                     txtMessage.setText(""+comp);
+
+                    */
                 } break;
                 default:
                 {        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, getActivity(), mLoaderCallback);
@@ -123,7 +129,7 @@ private static String TAG="MainActivity";
                              Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.tab2gtt, container, false);
         btn = (Button) rootView.findViewById(R.id.button3);
-        ImageView imageview = (ImageView) rootView.findViewById(R.id.imageview);
+        final ImageView imageview = (ImageView) rootView.findViewById(R.id.imageview);
         txtMessage=(EditText) rootView.findViewById(R.id.editText4);
         txtphoneNo=(EditText) rootView.findViewById(R.id.editText5);
         Button process1 = (Button) rootView.findViewById(R.id.process);
@@ -155,12 +161,27 @@ private static String TAG="MainActivity";
         //process button
         process1.setOnClickListener(new View.OnClickListener() {
 
-           @Override
-            public void onClick(View v) {
+                                        @Override
+                                        public void onClick(View v) {
+                                            if (!OpenCVLoader.initDebug()) {
+                                                Log.d("OpenCV", "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+                                                OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, getActivity(), mLoaderCallback);
+                                            } else {
+                                                Log.d("OpenCV", "OpenCV library found inside package. Using it!");
+                                                mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+                                                //bmp = BitmapFactory.decodeResource(getResources(), R.drawable.download);
+                                                bmp = BitmapFactory.decodeFile("/storage/emulated/0/Download/Camera_app/cam_image.jpg");
+                                               bamp = ImageProcessing(bmp);
+                                                Log.d("OpenCV", "done wid processing");
+                                                imageview.setImageBitmap(bamp);
 
-                mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
-detectregion();
-            }
+                                            }
+                                        }
+
+              // File root = Environment.getExternalStorageDirectory();
+
+//detectregion();
+
         });
 
         //check for TTS data
@@ -272,6 +293,22 @@ else if(flag==1){
     private void speakWords(String speech) {
         myTTS.speak(speech, TextToSpeech.QUEUE_FLUSH, null);
     }
+    public Bitmap ImageProcessing(Bitmap bitmap){
+        Log.d("OpenCV", "inside image processing method");
 
+        Utils.bitmapToMat(bitmap, imageMat);
+        Imgproc.cvtColor(imageMat, imageMat, Imgproc.COLOR_BGR2GRAY);
+        Log.d("OpenCV", "gray");
 
+        Imgproc.GaussianBlur(imageMat, imageMat, new Size(3, 3), 0);
+        Log.d("OpenCV", "gaussian blur");
+
+        Imgproc.adaptiveThreshold(imageMat, imageMat, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY_INV, 5, 4);
+        Log.d("OpenCV", "threshold");
+        Utils.matToBitmap(imageMat,bitmap);
+
+        return bitmap;
     }
+
+
+}

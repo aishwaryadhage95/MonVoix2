@@ -82,9 +82,11 @@
         android:layout_marginBottom="18dp"
         android:id="@+id/process" />
     <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/imageview"/>
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/imageview"
+        android:layout_toEndOf="@+id/section_label"
+        android:layout_toRightOf="@+id/section_label" />
 
 
 </RelativeLayout>
