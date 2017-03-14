@@ -80,11 +80,15 @@ public class tab2gtt extends Fragment implements TextToSpeech.OnInitListener {
     Mat result;
     Mat skindetected;
     Mat imageMat;
+    Mat comparer;
     Bitmap bamp;
 Bitmap bmp;
+    Bitmap cmp;
     Button sendBtn;
     static int flag=0;
-
+    Mat kernel;
+Mat thresh;
+    Double diff;
 private static String TAG="MainActivity";
    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(getActivity()) {
         @Override
@@ -94,6 +98,9 @@ private static String TAG="MainActivity";
                 {
                     Log.i(TAG, "OpenCV loaded successfully");
                     imageMat=new Mat();
+                    kernel=new Mat();
+                    thresh = new Mat();
+                    comparer=new Mat();
 
 
                     /* Mat img1 = Imgcodecs.imread(getResources().getDrawable(R.drawable.hello).toString());
@@ -169,12 +176,14 @@ private static String TAG="MainActivity";
                                             } else {
                                                 Log.d("OpenCV", "OpenCV library found inside package. Using it!");
                                                 mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
-                                                //bmp = BitmapFactory.decodeResource(getResources(), R.drawable.download);
-                                                bmp = BitmapFactory.decodeFile("/storage/emulated/0/Download/Camera_app/cam_image.jpg");
+                                                bmp = BitmapFactory.decodeResource(getResources(), R.drawable.camhand2);
+                                                cmp=BitmapFactory.decodeResource(getResources(), R.drawable.camhand2);
+                                               // bmp = BitmapFactory.decodeFile("/storage/emulated/0/Download/Camera_app/cam_image.jpg");
                                                bamp = ImageProcessing(bmp);
+                                                diff=difference(bamp,cmp);
                                                 Log.d("OpenCV", "done wid processing");
-                                                imageview.setImageBitmap(bamp);
-
+                                              //  imageview.setImageBitmap(bamp);
+                                                Log.d("OpenCV", String.valueOf(diff));
                                             }
                                         }
 
@@ -226,9 +235,26 @@ private static String TAG="MainActivity";
 
         return rootView;
     }
+///compare images
+    private Double difference(Bitmap bmp, Bitmap cmp) {
+        int intColor1 = 0;
+        int sum=0;
+        int intColor2 = 0;
+        for (int x = 0; x < bmp.getWidth(); x++) {
+            for (int y = 0; y < bmp.getHeight(); y++) {
+                intColor1 = bmp.getPixel(x, y);
+                intColor2 = cmp.getPixel(x, y);
+                if(intColor1>intColor2)
+                    sum=sum+(intColor1-intColor2);
+                else
+                    sum=sum+(intColor2-intColor1);
 
-    private void detectregion() {
-
+            }
+        }
+        int ncomponents=bmp.getHeight()*bmp.getWidth()*3;
+        //now calculate percentage difference
+        double diff = (sum/255.0*100)/ncomponents;
+        return diff;
     }
 //save image
     private File getFile() {
@@ -238,13 +264,8 @@ private static String TAG="MainActivity";
             folder.mkdir();
         }
         File image_file = new File(folder, "cam_image.jpg");
-
-
-
-
         return image_file;
     }
-
 //after saving image
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -255,7 +276,7 @@ private static String TAG="MainActivity";
              txtMessage.setText(txtMessage.getText() + "Hello " + btn.getText());
              flag++;
          }
-else if(flag==1){
+        else if(flag==1){
              txtMessage.setText(txtMessage.getText() + " Good " + btn.getText());
              flag++;
          }
@@ -289,24 +310,30 @@ else if(flag==1){
             Toast.makeText(getActivity(), "Sorry! Text To Speech failed...", Toast.LENGTH_LONG).show();
         }
     }
-
+//speak button
     private void speakWords(String speech) {
         myTTS.speak(speech, TextToSpeech.QUEUE_FLUSH, null);
     }
+//process captured image
     public Bitmap ImageProcessing(Bitmap bitmap){
         Log.d("OpenCV", "inside image processing method");
-
         Utils.bitmapToMat(bitmap, imageMat);
-        Imgproc.cvtColor(imageMat, imageMat, Imgproc.COLOR_BGR2GRAY);
         Log.d("OpenCV", "gray");
-
-        Imgproc.GaussianBlur(imageMat, imageMat, new Size(3, 3), 0);
-        Log.d("OpenCV", "gaussian blur");
-
-        Imgproc.adaptiveThreshold(imageMat, imageMat, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY_INV, 5, 4);
-        Log.d("OpenCV", "threshold");
-        Utils.matToBitmap(imageMat,bitmap);
-
+        Imgproc.cvtColor(imageMat, imageMat, Imgproc.COLOR_BGR2HSV);
+        Log.d("OpenCV", "skin detect");
+       Imgproc.GaussianBlur(imageMat, imageMat, new Size(3,3), 0);
+//        Imgproc.medianBlur(imageMat,imageMat,new Size(3,3),0);
+        Core.inRange(imageMat, new Scalar(30, 30, 30), new Scalar(255, 255, 255), thresh);
+        int erosion_size = 5;
+        int dilation_size = 5;
+        kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(2*erosion_size + 1, 2*erosion_size+1));
+      //  Imgproc.erode(thresh, thresh, kernel);
+        Log.d("OpenCV", "canny edge");
+        Imgproc.Canny(thresh, thresh, 80, 100);
+        Mat element1 = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(2*dilation_size + 1, 2*dilation_size+1));
+        Imgproc.dilate(thresh, thresh, element1);
+        Log.d("OpenCV", "dilate");
+        Utils.matToBitmap(thresh,bitmap);
         return bitmap;
     }
 
