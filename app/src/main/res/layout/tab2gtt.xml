@@ -13,20 +13,20 @@
     <Button
         android:layout_width="50dp"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/button"
-        android:layout_toLeftOf="@+id/button"
-        android:id="@+id/button2"
+        android:layout_alignTop="@+id/send"
+        android:layout_toLeftOf="@+id/send"
+        android:id="@+id/audio"
         android:background="@drawable/mic"
-        android:layout_alignBottom="@+id/editText4" />
+        android:layout_alignBottom="@+id/mesage" />
 
     <Button
         android:layout_width="50dp"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/button2"
-        android:layout_toLeftOf="@+id/button2"
-        android:id="@+id/button3"
+        android:layout_alignTop="@+id/audio"
+        android:layout_toLeftOf="@+id/audio"
+        android:id="@+id/camera"
         android:background="@drawable/cam"
-        android:layout_alignBottom="@+id/editText4" />
+        android:layout_alignBottom="@+id/mesage" />
 
     <TextView
         android:text="Phone Number"
@@ -41,19 +41,19 @@
     <Button
         android:layout_width="50dp"
         android:layout_height="wrap_content"
-        android:id="@+id/button"
+        android:id="@+id/send"
         android:background="@drawable/send"
-        android:layout_alignTop="@+id/editText4"
+        android:layout_alignTop="@+id/mesage"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:layout_alignBottom="@+id/editText4" />
+        android:layout_alignBottom="@+id/mesage" />
 
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:inputType="textPersonName"
         android:ems="10"
-        android:id="@+id/editText5"
+        android:id="@+id/contactno"
         android:layout_alignBaseline="@+id/textView2"
         android:layout_alignBottom="@+id/textView2"
         android:layout_alignParentRight="true"
@@ -64,29 +64,30 @@
         android:layout_height="wrap_content"
         android:inputType="textPersonName"
         android:ems="10"
-        android:id="@+id/editText4"
+        android:id="@+id/mesage"
         android:layout_marginBottom="81dp"
         android:layout_alignParentBottom="true"
         android:layout_toRightOf="@+id/section_label"
         android:layout_toEndOf="@+id/section_label" />
 
-    <Button
-        android:text="Process"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/button2"
-        android:layout_alignLeft="@+id/button3"
-        android:layout_alignStart="@+id/button3"
-        android:layout_marginLeft="27dp"
-        android:layout_marginStart="27dp"
-        android:layout_marginBottom="18dp"
-        android:id="@+id/process" />
     <ImageView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="550dp"
         android:id="@+id/imageview"
-        android:layout_toEndOf="@+id/section_label"
-        android:layout_toRightOf="@+id/section_label" />
+        android:layout_toRightOf="@+id/section_label"
+        android:layout_below="@+id/contact"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_above="@+id/audio" />
+
+    <Button
+        android:text="Select Contact"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/contact"
+        android:layout_below="@+id/contactno"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="29dp" />
 
 
 </RelativeLayout>

@@ -1,202 +1,169 @@
 package com.example.aishwarya.monvoix;
 
+import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
+import android.provider.ContactsContract;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.speech.tts.TextToSpeech;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.ContextCompat;
 import android.telephony.SmsManager;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
-import android.widget.Toolbar;
-import org.opencv.android.BaseLoaderCallback;
-import org.opencv.android.LoaderCallbackInterface;
-import org.opencv.android.OpenCVLoader;
-import org.opencv.android.Utils;
-import java.io.File;
-import java.util.Locale;
-import static android.R.attr.bitmap;
-import static android.R.attr.height;
-import static android.R.attr.path;
-import static android.R.attr.type;
-import static android.R.attr.value;
-import static android.R.attr.width;
-import static android.app.Activity.RESULT_OK;
-import static android.content.ContentValues.TAG;
-import static android.content.Context.BIND_ABOVE_CLIENT;
-import static com.example.aishwarya.monvoix.R.id.button;
-import static com.example.aishwarya.monvoix.R.id.image;
-import static com.example.aishwarya.monvoix.R.id.imageView;
-//import static com.example.aishwarya.monvoix.R.id.image_view;
-import static com.example.aishwarya.monvoix.R.id.toolbar;
-import static org.opencv.imgcodecs.Imgcodecs.IMREAD_GRAYSCALE;
-import static org.opencv.imgcodecs.Imgcodecs.imread;
-import static org.opencv.imgproc.Imgproc.ADAPTIVE_THRESH_MEAN_C;
-import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
-import static org.opencv.imgproc.Imgproc.adaptiveThreshold;
-import org.opencv.android.JavaCameraView;
-import org.opencv.android.OpenCVLoader;
-import org.opencv.android.Utils;
-import org.opencv.core.Core;
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-import org.opencv.core.Mat;
-import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.core.Size;
-import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.imgproc.Imgproc;
-import org.opencv.core.*;
-import org.opencv.imgcodecs.Imgcodecs;
 
-public class tab2gtt extends Fragment implements TextToSpeech.OnInitListener {
-   // private File imageFile;
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
+import java.io.ByteArrayOutputStream;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Locale;
+import java.util.Map;
+
+import static android.R.attr.bitmap;
+import static android.app.Activity.RESULT_OK;
+import static com.example.aishwarya.monvoix.R.id.mesage;
+
+
+public class tab2gtt extends Fragment implements TextToSpeech.OnInitListener, ActivityCompat.OnRequestPermissionsResultCallback {
+    // private File imageFile;
     Button btn;
     EditText txtMessage;
     EditText txtphoneNo;
-    ImageView mimageView;
-    static final int CAM_REQUEST = 1;
-    JavaCameraView javaCameraView;
+    private boolean isSame = false;
+    final int c = 13;
     //TTS object
     private TextToSpeech myTTS;
     //status check code
-    private int MY_DATA_CHECK_CODE = 0;
-    Mat gray;
-    Mat result;
-    Mat skindetected;
-    Mat imageMat;
-    Mat comparer;
-    Bitmap bamp;
-Bitmap bmp;
-    Bitmap cmp;
+    Double d;
+    int count=0;
+    double diff=0;
+    Bitmap bmp;
     Button sendBtn;
-    static int flag=0;
-    Mat kernel;
-Mat thresh;
-    Double diff;
-private static String TAG="MainActivity";
-   private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(getActivity()) {
-        @Override
-        public void onManagerConnected(int status) {
-            switch (status) {
-                case LoaderCallbackInterface.SUCCESS:
-                {
-                    Log.i(TAG, "OpenCV loaded successfully");
-                    imageMat=new Mat();
-                    kernel=new Mat();
-                    thresh = new Mat();
-                    comparer=new Mat();
+    EditText contno;
+    Button contact;
+    private Uri uriContact;
+    private String contactID;
+    private static String TAG = "MainActivity";
+    public static final int MY_PERMISSIONS_REQUEST_CAMERA = 100;
+    public static final String ALLOW_KEY = "ALLOWED";
+    public static final String CAMERA_PREF = "camera_pref";
+    private String UPLOAD_URL ="http://192.168.43.108/android_connect/upload.php";
+    private String TEXT_URL ="http://192.168.43.109/android_connect/addtext.php";
 
+    private String KEY_IMAGE = "image";
+    private String KEY_TEXT = "text";
 
-                    /* Mat img1 = Imgcodecs.imread(getResources().getDrawable(R.drawable.hello).toString());
-
-                    //Bitmap bmp32 = bmpGallery.copy(Bitmap.Config.ARGB_8888, true);
-                    //Utils.bitmapToMat(bmp32, );
-                    //Bitmap bmp;
-                    Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.hello);
-                    Mat tmp = new Mat (bmp.getWidth(), bmp.getHeight(), CvType.CV_8UC1);
-                    Utils.bitmapToMat(bmp, tmp);
-
-                    // Mat img2 = Imgcodecs.imread("mnt/sdcard/IMG-20121228-1.jpg");
-                    Scalar blah= Core.sumElems(tmp);
-                    Scalar blah1=Core.sumElems(img1);
-                    String b=blah.toString();
-                    String b1=blah1.toString();
-                    //System.out.println(b+" "+b1);
-                    double comp=b.compareTo(b1);
-                    txtMessage.setText(""+comp);
-
-                    */
-                } break;
-                default:
-                {        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, getActivity(), mLoaderCallback);
-
-                    super.onManagerConnected(status);
-                } break;
-            }
-        }
-    };
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         final View rootView = inflater.inflate(R.layout.tab2gtt, container, false);
-        btn = (Button) rootView.findViewById(R.id.button3);
-        final ImageView imageview = (ImageView) rootView.findViewById(R.id.imageview);
-        txtMessage=(EditText) rootView.findViewById(R.id.editText4);
-        txtphoneNo=(EditText) rootView.findViewById(R.id.editText5);
-        Button process1 = (Button) rootView.findViewById(R.id.process);
-        Button speakButton = (Button) rootView.findViewById(R.id.button2);
-        final EditText enteredText = (EditText) rootView.findViewById(R.id.editText4);
-        sendBtn=(Button) rootView.findViewById(R.id.button);
-        //listen for clicks
+        btn = (Button) rootView.findViewById(R.id.camera);
+        txtMessage = (EditText) rootView.findViewById(mesage);
+        contno = (EditText) rootView.findViewById(R.id.contactno);
+        // Button process1 = (Button) rootView.findViewById(R.id.process);
+        Button speakButton = (Button) rootView.findViewById(R.id.audio);
+        contact = (Button) rootView.findViewById(R.id.contact);
+        final EditText enteredText = (EditText) rootView.findViewById(mesage);
+        sendBtn = (Button) rootView.findViewById(R.id.send);
+
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //   Intent camera_intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                //  startActivityForResult(camera_intent, 0);
+                if (ContextCompat.checkSelfPermission(getActivity(),
+                        Manifest.permission.CAMERA)
+                        != PackageManager.PERMISSION_GRANTED) {
+
+                    if (getFromPref(getActivity(), ALLOW_KEY)) {
+
+                        showSettingsAlert();
+
+                    } else if (ContextCompat.checkSelfPermission(getActivity(),
+                            Manifest.permission.CAMERA)
+                            != PackageManager.PERMISSION_GRANTED) {
+                        // Should we show an explanation?
+                        if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity(),
+                                Manifest.permission.CAMERA)) {
+                            showAlert();
+                        } else {
+                            // No explanation needed, we can request the permission.
+                            ActivityCompat.requestPermissions(getActivity(),
+                                    new String[]{Manifest.permission.CAMERA},
+                                    MY_PERMISSIONS_REQUEST_CAMERA);
+                        }
+                    }
+                } else {
+                    openCamera();
+                }
+
+            }
+
+
+        });
+
+
         //send button
         sendBtn.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                String no=txtphoneNo.getText().toString();
-                String msg=txtMessage.getText().toString();
+                String no = contno.getText().toString();
+                String msg = txtMessage.getText().toString();
                 //Getting intent and PendingIntent instance
-                Intent intent=new Intent(getActivity(),MainActivity.class);
-                PendingIntent pi= PendingIntent.getActivity(getActivity(), 0, intent,0);
+                Intent intent = new Intent(getActivity(), MainActivity.class);
+                PendingIntent pi = PendingIntent.getActivity(getActivity(), 0, intent, 0);
                 //Get the SmsManager instance and call the sendTextMessage method to send message
-                SmsManager sms= SmsManager.getDefault();
-                sms.sendTextMessage(no, null, msg, pi,null);
-                Log.i(TAG,no);
-                Log.i(TAG,msg);
+                SmsManager sms = SmsManager.getDefault();
+                sms.sendTextMessage(no, null, msg, pi, null);
+                Log.i(TAG, no);
+                Log.i(TAG, msg);
                 Toast.makeText(getActivity(), "Message Sent successfully!",
                         Toast.LENGTH_LONG).show();
             }
 
 
         });
-        //process button
-        process1.setOnClickListener(new View.OnClickListener() {
 
-                                        @Override
-                                        public void onClick(View v) {
-                                            if (!OpenCVLoader.initDebug()) {
-                                                Log.d("OpenCV", "Internal OpenCV library not found. Using OpenCV Manager for initialization");
-                                                OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, getActivity(), mLoaderCallback);
-                                            } else {
-                                                Log.d("OpenCV", "OpenCV library found inside package. Using it!");
-                                                mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
-                                                bmp = BitmapFactory.decodeResource(getResources(), R.drawable.camhand2);
-                                                cmp=BitmapFactory.decodeResource(getResources(), R.drawable.camhand2);
-                                               // bmp = BitmapFactory.decodeFile("/storage/emulated/0/Download/Camera_app/cam_image.jpg");
-                                               bamp = ImageProcessing(bmp);
-                                                diff=difference(bamp,cmp);
-                                                Log.d("OpenCV", "done wid processing");
-                                              //  imageview.setImageBitmap(bamp);
-                                                Log.d("OpenCV", String.valueOf(diff));
-                                            }
-                                        }
 
-              // File root = Environment.getExternalStorageDirectory();
-
-//detectregion();
-
-        });
+/*
 
         //check for TTS data
         Intent checkTTSIntent = new Intent();
         checkTTSIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
-        startActivityForResult(checkTTSIntent, MY_DATA_CHECK_CODE);
+        startActivityForResult(checkTTSIntent, 1);
+*/
+
         //audio button
         speakButton.setOnClickListener(new View.OnClickListener() {
 
@@ -207,101 +174,68 @@ private static String TAG="MainActivity";
                 Intent checkTTSIntent = new Intent();
                 checkTTSIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
 
-                startActivityForResult(checkTTSIntent, MY_DATA_CHECK_CODE);
+                startActivityForResult(checkTTSIntent,1 );
             }
 
 
         });
 
+
 //camera button
-        btn.setOnClickListener(new View.OnClickListener() {
+
+        //contact directory
+        contact.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-
-
-                Intent camera_intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
-               File file = getFile();
-                camera_intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(file));
-             //   txtMessage.setText( txtMessage.getText() + "Hello " + btn.getText() );
-                startActivityForResult(camera_intent, CAM_REQUEST);
-
+                startActivityForResult(new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI),2);
 
             }
-
-
         });
 
         return rootView;
     }
-///compare images
-    private Double difference(Bitmap bmp, Bitmap cmp) {
-        int intColor1 = 0;
-        int sum=0;
-        int intColor2 = 0;
-        for (int x = 0; x < bmp.getWidth(); x++) {
-            for (int y = 0; y < bmp.getHeight(); y++) {
-                intColor1 = bmp.getPixel(x, y);
-                intColor2 = cmp.getPixel(x, y);
-                if(intColor1>intColor2)
-                    sum=sum+(intColor1-intColor2);
-                else
-                    sum=sum+(intColor2-intColor1);
 
-            }
-        }
-        int ncomponents=bmp.getHeight()*bmp.getWidth()*3;
-        //now calculate percentage difference
-        double diff = (sum/255.0*100)/ncomponents;
-        return diff;
-    }
-//save image
-    private File getFile() {
-        File folder = new File("/storage/emulated/0/Download/Camera_app");
-
-        if (!folder.exists()) {
-            folder.mkdir();
-        }
-        File image_file = new File(folder, "cam_image.jpg");
-        return image_file;
-    }
-//after saving image
+    //after saving image
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-       if(requestCode==CAM_REQUEST) {
-           String path = "/storage/emulated/0/Download/Camera_app/cam_image.jpg";
+        switch(requestCode) {
+            case 0:
+                if (resultCode == RESULT_OK) {
+                    Bundle extras = data.getExtras();
+                    ImageView imageview = (ImageView) getView().findViewById(R.id.imageview);
 
-         if(flag==0) {
-             txtMessage.setText(txtMessage.getText() + "Hello " + btn.getText());
-             flag++;
-         }
-        else if(flag==1){
-             txtMessage.setText(txtMessage.getText() + " Good " + btn.getText());
-             flag++;
-         }
-         else if(flag==2){
-             txtMessage.setText(txtMessage.getText() + " Morning " + btn.getText());
-             flag++;
-         }
+                    bmp = (Bitmap) extras.get("data");
+                    //bmp = Bitmap.createScaledBitmap(bmp, 200, 200, true);
+                    uploadImage();
+                    imageview.setImageBitmap(bmp);
 
-       }
-        else
-                if(requestCode==MY_DATA_CHECK_CODE)
-       {
-           if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
-               //the user has the necessary data - create the TTS
-               { myTTS = new TextToSpeech(getActivity(),this);}
-           }
-           else
-           {
-               //no data - install it now
-               Intent installTTSIntent = new Intent();
-               installTTSIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
-               startActivity(installTTSIntent);
-           }
-       }
+
+                    break;
+                }
+            case 1:
+                if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
+                    //the user has the necessary data - create the TTS
+                    {
+                        myTTS = new TextToSpeech(getActivity(), this);
+                    }
+                } else {
+                    //no data - install it now
+                    Intent installTTSIntent = new Intent();
+                    installTTSIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                    startActivity(installTTSIntent);
+                }
+                break;
+            case 2:
+                if (resultCode == RESULT_OK) {
+                    uriContact = data.getData();
+                    retrieveContactNumber();
+                }
+
+        }
     }
+
+
     public void onInit(int initStatus) {
         if (initStatus == TextToSpeech.SUCCESS) {
             if (myTTS.isLanguageAvailable(Locale.US) == TextToSpeech.LANG_AVAILABLE)
@@ -310,32 +244,281 @@ private static String TAG="MainActivity";
             Toast.makeText(getActivity(), "Sorry! Text To Speech failed...", Toast.LENGTH_LONG).show();
         }
     }
-//speak button
+
+
+    //speak button
     private void speakWords(String speech) {
         myTTS.speak(speech, TextToSpeech.QUEUE_FLUSH, null);
     }
-//process captured image
-    public Bitmap ImageProcessing(Bitmap bitmap){
-        Log.d("OpenCV", "inside image processing method");
-        Utils.bitmapToMat(bitmap, imageMat);
-        Log.d("OpenCV", "gray");
-        Imgproc.cvtColor(imageMat, imageMat, Imgproc.COLOR_BGR2HSV);
-        Log.d("OpenCV", "skin detect");
-       Imgproc.GaussianBlur(imageMat, imageMat, new Size(3,3), 0);
-//        Imgproc.medianBlur(imageMat,imageMat,new Size(3,3),0);
-        Core.inRange(imageMat, new Scalar(30, 30, 30), new Scalar(255, 255, 255), thresh);
-        int erosion_size = 5;
-        int dilation_size = 5;
-        kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(2*erosion_size + 1, 2*erosion_size+1));
-      //  Imgproc.erode(thresh, thresh, kernel);
-        Log.d("OpenCV", "canny edge");
-        Imgproc.Canny(thresh, thresh, 80, 100);
-        Mat element1 = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(2*dilation_size + 1, 2*dilation_size+1));
-        Imgproc.dilate(thresh, thresh, element1);
-        Log.d("OpenCV", "dilate");
-        Utils.matToBitmap(thresh,bitmap);
-        return bitmap;
+
+
+    //process captured image
+
+
+
+
+    private void retrieveContactNumber() {
+
+        String contactNumber = null;
+        // getting contacts ID
+        Cursor cursorID = getActivity().getContentResolver().query(uriContact,
+                new String[]{ContactsContract.Contacts._ID},
+                null, null, null);
+        if (cursorID.moveToFirst()) {
+
+            contactID = cursorID.getString(cursorID.getColumnIndex(ContactsContract.Contacts._ID));
+        }
+        cursorID.close();
+        Log.d(TAG, "Contact ID: " + contactID);
+
+        // Using the contact ID now we will get contact phone number
+        Cursor cursorPhone = getActivity().getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                new String[]{ContactsContract.CommonDataKinds.Phone.NUMBER},
+
+                ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ? AND " +
+                        ContactsContract.CommonDataKinds.Phone.TYPE + " = " +
+                        ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE,
+                new String[]{contactID},
+                null);
+        if (cursorPhone.moveToFirst()) {
+            contactNumber = cursorPhone.getString(cursorPhone.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+        }
+        cursorPhone.close();
+        Log.d(TAG, "Contact Phone Number: " + contactNumber);
+        contno.setText( contactNumber );
+
+    }
+    public static void saveToPreferences(Context context, String key,
+                                         Boolean allowed) {
+        SharedPreferences myPrefs = context.getSharedPreferences
+                (CAMERA_PREF, Context.MODE_PRIVATE);
+        SharedPreferences.Editor prefsEditor = myPrefs.edit();
+        prefsEditor.putBoolean(key, allowed);
+        prefsEditor.commit();
     }
 
+    public static Boolean getFromPref(Context context, String key) {
+        SharedPreferences myPrefs = context.getSharedPreferences
+                (CAMERA_PREF, Context.MODE_PRIVATE);
+        return (myPrefs.getBoolean(key, false));
+    }
+
+    private void showAlert() {
+        AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
+        alertDialog.setTitle("Alert");
+        alertDialog.setMessage("App needs to access the Camera.");
+        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "DONT ALLOW",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+
+                    }
+                });
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "ALLOW",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        ActivityCompat.requestPermissions(getActivity(),
+                                new String[]{Manifest.permission.CAMERA},
+                                MY_PERMISSIONS_REQUEST_CAMERA);
+
+                    }
+                });
+        alertDialog.show();
+    }
+
+    private void showSettingsAlert() {
+        AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
+        alertDialog.setTitle("Alert");
+        alertDialog.setMessage("App needs to access the Camera.");
+        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "DONT ALLOW",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        //finish();
+                    }
+                });
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "SETTINGS",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        startInstalledAppDetailsActivity(getActivity());
+
+                    }
+                });
+        alertDialog.show();
+    }
+
+    @Override
+    public void onRequestPermissionsResult
+            (int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_CAMERA: {
+                for (int i = 0, len = permissions.length; i < len; i++) {
+                    String permission = permissions[i];
+                    if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
+                        boolean showRationale =
+                                ActivityCompat.shouldShowRequestPermissionRationale
+                                        (getActivity(), permission);
+                        if (showRationale) {
+                            showAlert();
+                        } else if (!showRationale) {
+                            // user denied flagging NEVER ASK AGAIN
+                            // you can either enable some fall back,
+                            // disable features of your app
+                            // or open another dialog explaining
+                            // again the permission and directing to
+                            // the app setting
+                            saveToPreferences(getActivity(), ALLOW_KEY, true);
+                        }
+                    }
+                }
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+
+        }
+    }
+    public static void startInstalledAppDetailsActivity(final Activity context) {
+        if (context == null) {
+            return;
+        }
+        final Intent i = new Intent();
+        i.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        i.addCategory(Intent.CATEGORY_DEFAULT);
+        i.setData(Uri.parse("package:" + context.getPackageName()));
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        i.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+        i.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+        context.startActivity(i);
+    }
+
+    private void openCamera() {
+       // Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
+       // startActivity(intent);
+        Intent camera_intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+          startActivityForResult(camera_intent, 0);
+    }
+    private void uploadImage(){
+        //Showing the progress dialog
+        final ProgressDialog loading = ProgressDialog.show(getActivity(),"Uploading...","Please wait...",false,false);
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, UPLOAD_URL,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String s) {
+                        //Disimissing the progress dialog
+                        loading.dismiss();
+                        //Showing toast message of the response
+                        //Toast.makeText(getActivity(), s , Toast.LENGTH_LONG).show();
+                        txtMessage.setText(s);
+                       confirm();
+
+                    }
+
+
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError volleyError) {
+                        //Dismissing the progress dialog
+                        loading.dismiss();
+
+                        //Showing toast
+                        Log.d("error", volleyError.getMessage().toString());
+                        Toast.makeText(getActivity(), volleyError.getMessage().toString(), Toast.LENGTH_LONG).show();
+
+                    }
+                }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                //Converting Bitmap to String
+                String image = getStringImage(bmp);
+
+                //Getting Image Name
+              //  String name = .getText().toString().trim();
+
+                //Creating parameters
+                Map<String,String> params = new Hashtable<String, String>();
+
+                //Adding parameters
+                params.put(KEY_IMAGE, image);
+              //  params.put(KEY_NAME, name);
+
+                //returning parameters
+                return params;
+            }
+        };
+
+        //Creating a Request Queue
+        RequestQueue requestQueue = Volley.newRequestQueue(getActivity());
+
+        //Adding request to the queue
+        requestQueue.add(stringRequest);
+    }
+    public String getStringImage(Bitmap bmp){
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bmp.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte[] imageBytes = baos.toByteArray();
+        String encodedImage = Base64.encodeToString(imageBytes, Base64.DEFAULT);
+        return encodedImage;
+    }
+public void confirm() {
+    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+
+    builder.setTitle("Help Us to Help You");
+    builder.setMessage("Is the prediction correct?");
+
+    builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+        public void onClick(DialogInterface dialog, int which) {
+            // Do nothing but close the dialog
+            final String username = txtMessage.getText().toString().trim();
+
+
+            StringRequest stringRequest = new StringRequest(Request.Method.POST, TEXT_URL,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            Toast.makeText(getActivity(), response, Toast.LENGTH_LONG).show();
+                        }
+                    },
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Toast.makeText(getActivity(), error.toString(), Toast.LENGTH_LONG).show();
+                        }
+                    }) {
+                @Override
+                protected Map<String, String> getParams() {
+                    Map<String, String> params = new HashMap<String, String>();
+                    params.put(KEY_TEXT, username);
+
+                    return params;
+                }
+
+            };
+
+            RequestQueue requestQueue = Volley.newRequestQueue(getActivity());
+            requestQueue.add(stringRequest);
+
+
+            dialog.dismiss();
+        }
+    });
+
+    builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+
+            // Do nothing
+            dialog.dismiss();
+        }
+    });
+
+    AlertDialog alert = builder.create();
+    alert.show();
+}
 
 }
